@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+    <title>Exercise 5: Utilizing active patterns to create a flight itinerary</title>
+    <link rel="stylesheet" type="text/css" href="./res/styles/normalize.css">
+    <link rel="stylesheet" type="text/css" href="./res/styles/prettify.css" />
+    <link rel="stylesheet" type="text/css" href="./res/styles/styles.css">
+</head>
+
+<body>
+    <!-- Use the same title as the StartHere -->
+    <header>Partial Application and Pattern Matching</header>
+
+   
+<section id="main">
+  <h1 id="page-title"></h1>
+  <h2>Duration</h2>
+  <p>20 minutes</p>
+  
+  <h2>Goals</h2>
+  <p>
+    The goal of this lab is to utilize <a href="http://msdn.microsoft.com/en-us/library/dd233248.aspx">active patterns</a> to calculate which airline had the lowest domestic arrival counts (deplaning) in SFO for December of every year.
+  </p>
+  <ol class="indent-medium">
+    <li>Create an F# library project and open the <b>script.fsx</b> file.</li>
+    <li>Connect to the <b>FSharp.Data type provider</b> and read in a provided .csv file with all the data.</li>
+    <li>Create a partial active pattern to separate December activity.</li>
+    <li>Create a partial active pattern to find deplaning activity.</li>
+  </ol>       
+  <img class="indent-none" src="./res/images/active.png"  alt=""/>
+
+  <h1>Steps</h1>
+  <h2>Connect to the type provider</h2>
+  <p>
+    One of the unique aspects of F# is how it is capable of manipulating external data. This is done through a <em>type provider</em> which we will cover in in the next F# course, however we will use a type provider here to give you a taste of the power available.
+  </p>
+
+  <ol>
+    <li>
+      Create a new library application and open <b>script.fsx</b>.
+    </li>
+
+    <li>
+      Create a <b>Data</b> folder in your project, and add the <b>SFO-Passenger-Data.csv</b> file from the <b>Exercise 5</b> folder that was provided with the course materials to that folder. Make sure to select <b>Copy</b> if you are using Visual Studio for Mac and it prompts you to add the file to the folder.
+    </li>
+
+    <li>
+      You can open the data file and examine the contents - it's a comma-separated data file which looks like this:
+    </li>
+
+<pre class="codeblock">
+Activity Period,Operating Airline,Operating Airline IATA Code,Published ...
+200801,Aer Lingus,EI,Aer Lingus,EI,International,Europe,Deplaned,Other,International,A,2858
+200801,Aer Lingus,EI,Aer Lingus,EI,International,Europe,Enplaned,Other,International,A,2716
+200801,Air Canada ,AC,Air Canada ,AC,International,Canada,Deplaned,Other,Terminal 3,E,19756
+</pre>
+
+    <li>
+      Add the <a href="https://www.nuget.org/packages/FSharp.Data/">FSharp.Data</a> NuGet package to your project. This is done by right-clicking on the project and selecting <b>Add > Packages</b> in Visual Studio for Mac, or right-clicking on the <b>References</b> folder and selecting <b>Manage Nuget Packages</b> in Visual Studio. Type &quot;FSharp.Data&quot; into the search box and select the appropriate DLL from the dialog as shown below.
+    </li>
+
+    <img class="indent-none" src="./res/images/nuget.png" />
+    <li>
+       Add a reference to the DLL with the following code at the top of your script file - note that the path needs to be verified in case the version has changed or it's been placed in a slightly different location.
+       Make sure to note the version number of F# Data when you download it and update the path if necessary.
+<pre class="prettyprint codeblock">
+#r "./packages/FSharp.Data.2.2.3/lib/net40/FSharp.Data.dll"
+open FSharp.Data
+</pre>
+    </li>
+    <li>
+      We are going to use a type provider to load the .CSV file and explore it. Copy and paste the text below to connect to the <a href="http://fsharp.github.io/FSharp.Data/library/CsvProvider.html">CSVProvider</a> and pull all the data into a list.
+<pre class="prettyprint codeblock">
+let SFOFile = new CsvProvider&lt;"Data/SFO-Passenger-Data.csv">()
+let SFOData = SFOFile.Rows |> Seq.toList
+</pre>
+    </li>
+    <li>
+      Once you have performed these steps, your solution should look something like:
+    </li>
+    <img class="indent-none" src="./res/images/solution-explorer.PNG" />
+  </ol> 
+  
+
+  <h2>Utilize active patterns</h2>
+  <p>
+    Next we will create two partial active pattern functions to partition the data in the CSV file. In each of the steps below, don't worry about separating out the comma-delimited values, the type provider will do most of that for us. Assume that the input to each of the active pattern match functions is just the column in question.
+  </p>
+   
+  <ol>
+    <li>
+      Let's start with the December activity period. Remember that when you create a <em>partial</em> active pattern, you will need to use an option type because not all the data is matched.
+    </li>   
+    <li>
+      We want to look for any data where the input string ends with &quot;12&quot;. All other data should be ignored. The activity period is in the form DDMMYY so we only need to look at the final two characters - an easy what to do that is through the <code>string.EndsWith</code> method.
+      <ul class="indent-none">
+        <li><b>Hint:</b> try turning the input into a <code>string</code> to get access to that method</li>
+      </ul>
+    </li>
+  </ol>
+
+<p><a href="#" onclick="toggleCode(this,'december');return false;" class="uiitem">Show Code</a>
+<div class="indent-large" id="december" style="display:none;">
+<pre class="prettyprint">
+let (|December|_|) input = 
+    if input.ToString().EndsWith("12") then Some(December)
+    else None
+</pre>
+</div></p>
+
+  <ol start="3">
+    <li>
+      Next, create a partial active pattern to find deplaning numbers. If you look at the data file, we will be looking for the text &quot;Deplaned&quot;.
+    </li>
+  </ol>
+
+<p><a href="#" onclick="toggleCode(this,'deplane');return false;" class="uiitem">Show Code</a>
+<div class="indent-large" id="deplane" style="display:none;">
+<pre class="prettyprint">
+let (|Deplaning|_|) input = 
+    if input = "Deplaned" then Some(Deplaning)
+    else None
+</pre>
+</div></p>
+
+  <ol start="4">
+    <li>
+      Next, lets uses these two defined patterns to partition the lists to get the correct data. We first want all the flights that happened in December, then from that list we want all the flights which were deplaned.
+    </li>
+    <li>
+      Use the following code to pull the data out from the type provider:
+    </li>
+
+<pre class="prettyprint codeblock">
+let december, other = 
+    SFOData 
+     |> List.partition (fun x -> match x.``Activity Period`` with
+                                 | December -> true
+                                 | _ -> false)
+
+let decemberDeplaned, other2 = 
+    december
+     |> List.partition (fun x -> match x.``Activity Type Code`` with
+                                 | Deplaning -> true
+                                 | _ -> false)
+</pre>
+    <li>
+      Since this is the first time we've used the type provider, examine the syntax being used. The CSV type provider exposes the data through fields on an object generated from each row of the file - remember we turned it all into a list earlier. Since the column names have spaces, we need to use the double-single-quote to escape the property name - for example <code>x.``Activity Period``</code> and <code>x.``Activity Type Code``</code>.
+    </li>
+
+    <li>Using the <code>decemberDeplaned</code> list, find the minimum passenger count. The field you are looking for from the type provider is <code>``Passenger Count``</code>.
+    </li>
+  </ol>
+  
+<p><a href="#" onclick="toggleCode(this,'december2');return false;" class="uiitem">Show Code</a>
+<div class="indent-large" id="december2" style="display:none;">
+<pre class="prettyprint">
+let minarrivals = decemberDeplaned |> List.minBy (fun x -> x.``Passenger Count``)
+</pre>
+</div></p>
+
+  <ol start="8">
+    <li>Next, show the Operating Airline column for your result.</li>
+    <li>Select all the code in the script file and press <strong>CTRL+ENTER</strong> to run the code in the REPL, you should get <b>Servisair</b>.</li>
+  </ol>
+   
+<p><a href="#" onclick="toggleCode(this,'air');return false;" class="uiitem">Show Code</a>
+<div class="indent-large" id="air" style="display:none;">
+<pre class="prettyprint">
+minarrivals.``Operating Airline``
+</pre>
+</div></p>
+
+  <h1>Summary</h1>
+  <p> In this lab we have applied active partial patterns to data from a type provider to find out which airlines had the minimum passenger counts for December.</p>
+  <div class="align-right"> <a href="../Start%20Here.html">Go Back</a> </div>
+</section>
+
+    <script src="./res/js/jquery.min.js"></script>
+    <script src="./res/js/prettify.js"></script>
+    <script src="./res/js/script.js"></script>
+
+    <footer>Copyright (C) 2018 Xamarin Inc., Microsoft.</footer>
+</body>
+</html>

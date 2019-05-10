@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+    <title>Exercise 4: Apply pattern matching to create a daily routine</title>
+    <link rel="stylesheet" type="text/css" href="./res/styles/normalize.css">
+    <link rel="stylesheet" type="text/css" href="./res/styles/prettify.css" />
+    <link rel="stylesheet" type="text/css" href="./res/styles/styles.css">
+</head>
+
+<body>
+    <!-- Use the same title as the StartHere -->
+    <header>Partial Application and Pattern Matching</header>
+
+   
+<section id="main">
+  <h1 id="page-title"></h1>
+  <h2>Duration</h2>
+  <p>20 minutes</p>
+  <h2>Goals</h2>
+  <p>
+    The goal of this lab is to work with discriminated unions, pattern matching and records to create a daily routine. 
+  </p>
+  
+  <ol class="indent-medium">
+    <li>Create an F# library project and open the <b>script.fsx</b> file.</li>
+    <li>Utilize pattern matching to create a daily routine.</li>
+  </ol>       
+
+  <img src="./res/images/dailyroutine.png"/>
+
+  <h1>Steps</h1>
+  <h2>Add the options for the daily routine</h2>
+  <ol>
+    <li>
+      Create a new library application and open <b>script.fsx</b>.
+    </li>
+    <li>
+      Add the follwing types to the script file to define the data we will work with:
+    </li>
+  </ol> 
+  
+<pre class="prettyprint codeblock indent-medium">
+type Breakfast = 
+    | Cereal of name:string
+    | Fruit of pieces:int
+    | Omelet 
+
+type Commute = 
+    | Bus of route:int
+    | Bicycle
+
+type Routine = { Breakfast : Breakfast; Commute : Commute;}
+
+type Day = 
+    | Monday of monthday:int
+    | Tuesday of monthday:int
+    | Wednesday of monthday:int
+    | Thursday of monthday:int
+    | Friday of monthday:int
+    | Saturday of monthday:int
+    | Sunday of monthday:int
+</pre>
+
+  <h2>Create the daily routine</h2>
+    <p>
+      You are going to create a daily routine for each day of a 31-day month which starts on a Friday. You will need to assign a value for the number of days in the month and then match those to the days of the week.
+    </p>
+    <ol>
+      <li>
+        Start by creating a list to hold the days from 1 to 31, name this <code>daysOfMonth</code>.
+      </li>
+      <li>
+        Next, create a pattern matching function which takes a numeric day from 1-31 and returns one of the 7 <code>Day</code> values with the numeric value set as the <code>monthday</code> field. Since we want this to start on Friday, that comparison value might look like this:
+        <pre class="codeblock prettyprint">
+        match day % 7 with
+            | 1 -> Friday(day)
+            ...
+        </pre>
+      </li>
+    </ol>
+
+<p>
+<a href="#" onclick="toggleCode(this,'days');return false;" class="uiitem">Show Code</a>
+<div class="indent-large" id="days" style="display:none;">
+<pre class="prettyprint">
+let daysOfMonth = [1..31]
+
+let getDayOfWeek day = 
+    match day % 7 with
+        | 1 -> Friday(day)
+        | 2 -> Saturday(day)
+        | 3 -> Sunday(day)
+        | 4 -> Monday(day)
+        | 5 -> Tuesday(day)
+        | 6 -> Wednesday(day)
+        | 0 -> Thursday(day)
+</pre></div></p>
+
+    <ol start="3">
+      <li>Next, let's create a function named <code>getCommutesForDay</code> that determines whether we take the bus or ride our bicycle to work - assume we do it evenly.
+        <ul class="indent-none">
+          <li>
+            Assume two bus routes: 42 &amp; 17 or choose your two favorite numbers.
+          </li>
+          <li>
+            You want to match the days you will take the two different bus routes as well as the days you will ride your bike.
+          </li>
+          <li>
+            Use another pattern match expression, but divide the days into three groups (two bus routes and one bicycle).
+          </li>
+        </ul>
+  </ol>
+
+<p><a href="#" onclick="toggleCode(this,'commutes');return false;" class="uiitem">Show Code</a>
+<div class="indent-large" id="commutes" style="display:none;">
+<pre class="prettyprint">
+let getCommutesforDay day = 
+    match day % 3 with
+        | 0 -> Bus(42)
+        | 1 -> Bicycle
+        | 2 -> Bus(17)
+</pre></div></p>
+
+  <ol start="4">
+    <li>
+      Next, let's plan to have breakfast every day with at least 2 of those days having fruit. Write a function that matches the days of the week with the breakfast food. Select your favorite breakfast types, but make sure we have fruit at least two of the days.
+    </li>
+  </ol>
+
+<p><a href="#" onclick="toggleCode(this,'breakfast');return false;" class="uiitem">Show Code</a>
+<div class="indent-large" id="breakfast" style="display:none;">
+<pre class="prettyprint">
+let getBreakfastsforDay day = 
+    match day % 7 with
+        | 0 -> Cereal("Fruit Loops")
+        | 1 -> Fruit(1)
+        | 2 -> Omelet
+        | 3 -> Cereal("Cheerios")
+        | 4 -> Fruit(2)
+        | 5 -> Cereal("Captain Crunch")
+        | 6 -> Omelet
+</pre></div></p>
+
+  <ol start="5">
+    <li>Now that we've got all our pattern matches setup for the data, let's pull all the data together. We need to do the following:
+      <ol class="indent-none">
+        <li>Map the days to each of our pattern matching functions with <code>List.map</code>.</li>
+        <li>Combine all three lists together into a triple (tuple with three elements), we can do this with <code>List.zip3</code>.<br>
+        <a href="https://msdn.microsoft.com/en-us/library/ee370211.aspx">MSDN: List.zip3</a></li>
+        <li>Output each of the triples to the console to see what our daily routine will be.
+      </ol>
+    </li>
+    <li>Run the entire program in the REPL to see your daily schedule.</li>
+  </ol>
+
+<p><a href="#" onclick="toggleCode(this,'records');return false;" class="uiitem">Show Code</a>
+<div class="indent-large" id="records" style="display:none;">
+<pre class="prettyprint">
+let Days = List.map getDayOfWeek daysOfMonth
+let Commutes = List.map getCommutesforDay daysOfMonth
+let Breakfasts = List.map getBreakfastsforDay daysOfMonth
+
+let Schedule = List.zip3 Days Commutes Breakfasts
+
+for day in Schedule do printfn "%A" day
+</pre>
+</div></p>
+
+  <h1>Summary</h1>
+  <p> In this lab we have applied our knowledge of discriminated unions, pattern matching and records to create a daily routine.</p>
+  <div class="align-right"> <a href="../Start%20Here.html">Go Back</a> </div>
+</section>
+
+    <script src="./res/js/jquery.min.js"></script>
+    <script src="./res/js/prettify.js"></script>
+    <script src="./res/js/script.js"></script>
+
+    <footer>Copyright (C) 2018 Xamarin Inc., Microsoft.</footer>
+</body>
+</html>

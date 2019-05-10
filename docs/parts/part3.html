@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+    <title>Exercise 3: Practice pattern matching</title>
+    <link rel="stylesheet" type="text/css" href="./res/styles/normalize.css">
+    <link rel="stylesheet" type="text/css" href="./res/styles/prettify.css" />
+    <link rel="stylesheet" type="text/css" href="./res/styles/styles.css">
+</head>
+
+<body>
+    <!-- Use the same title as the StartHere -->
+    <header>Partial Application and Pattern Matching</header>
+
+   
+<section id="main">
+  <h1 id="page-title"></h1>
+  <h2>Duration</h2>
+  <p>10-20 minutes</p>
+
+  <h2>Lab Goals</h2>
+  <p>The primary goal of this two-part lab is to:
+    <ol class="indent-medium">
+      <li>See how the different types of pattern matching can be used more efficiently than if-then-else statements in F#</li>
+      <li>to practice different types of pattern matching</li>
+    </ol>
+  </p>
+  <p><img class="indent-none" src="res/images/patterns.png" alt="---- Missing Image -----"/></p>
+
+  <h1>Steps</h1>
+  <h2>Rewrite an if-then-else to use pattern matching</h2>
+  <p>
+    Let's begin by examining the following <code>if-then-else</code> statement which takes an array and verifies that it contains contains 1-9 values and that the average of the numbers in the array is > 0. Copy / paste this code into the F# REPL to see it execute.
+  </p>
+  
+  <pre class="prettyprint codeblock">
+let evaluate myArray = 
+    if Array.isEmpty myArray then 
+        printfn "Oh no, empty!"
+    elif Array.length myArray > 10 then 
+        printfn "Array too long!"
+    elif Array.max myArray > 4. then
+        if Array.average myArray > 5. then
+            printfn "Success"
+        else printfn "Values too small!"
+    else 
+        printfn "ok."
+
+evaluate [||]
+evaluate [|0.;1.;2.;7.|]
+evaluate [|2.;4.;77.; 84.; 90.; -200.;4.;22.;46.|]
+evaluate [|1.;3.|]
+</pre>
+  
+    <p>
+      Our task is to rewrite code using F#'s <a href="http://msdn.microsoft.com/en-us/library/dd547125.aspx" target="_blank">pattern match</a> capability.
+    </p>
+    <ol>
+      <li>
+        Begin by creating a library application and opening the <b>script.fsx</b> file in your IDE. You can use either Xamarin Studio or Visual Studio.
+      </li>
+      <li>
+        Write a new function named <code>pattern_match_evaluate</code> which takes a float array as a parameter and uses a <code>match</code> statement to duplicate the above logic.
+        <ul class="indent-none">
+          <li>Each <code>elif</code> condition is a separate comparison value.</li>
+          <li>You will use pattern guards (<code>when</code>) to provide the comparison logic.</li>
+        </ul>
+      </li>
+      <li>Use the same array data as above and select your code and click <strong>CTRL+ENTER</strong> to test it in the REPL. You should get the exact same responses back from this version of the logic.
+      </li>
+    </ol>
+
+  <p><a href="#" onclick="toggleCode(this,'AND');return false;" class="uiitem">Show Code</a>
+  <div class="indent-large" id="AND" style="display:none;">
+<pre class="prettyprint">
+let pattern_match_evaluate (myArray: float[]) = 
+    match myArray with 
+    | [||] -> printfn "Oh no, empty!"
+    | myArray when Array.length myArray > 10 -> printfn "Array too long!" 
+    | myArray when Array.max myArray > 4. &amp;&amp; Array.average myArray > 5. -> printfn "Success!"
+    | myArray when Array.max myArray > 4. &amp;&amp; Array.average myArray &lt;= 5. -> printfn "Values too large!"
+    | _ -> printfn "ok"  
+</pre>
+</div></p>
+
+<h2>Use Tuple pattern matching</h2>
+    <p>
+      Next, let's s rewrite this using a <a href="http://msdn.microsoft.com/en-us/library/dd547125.aspx" target="_blank">tuple pattern match with the AND pattern</a>.
+    </p>
+
+    <ol> 
+      <li>
+        Create a new function that takes the same float array.
+      </li>
+      <li>
+        This time, create a Tuple using the array length, max and average and begin a pattern match on the new tuple.
+      </li>
+      <li>
+        Provide comparison statements against the Tuple data to implement the <code>if-elif</code> logic. You will need:
+          <ul class="indent-none">
+            <li>A case when Array.length is zero, the max and average can be wildcards.</li>
+            <li>A case when the Array.length > 10, use a pattern guard.</li>
+            <li>A case when the max > 4 and the average is > 5 using an AND condition.</li>
+            <li>A case when the max > 4 and the average is &lt;= 5 using an AND condition.</li>
+            <li>A final wildcard case for the &quot;ok&quot; statement.</li>
+          </ul>
+      </li>
+      <li>Try to run your code using the same data as before, what happens?</li>
+      <li>If you passed in an <em>empty</em> array, you should get a <code>ArgumentException</code> because the <code>Array.max</code> and <code>Array.average</code> functions do not work when the array is empty.</li>
+      <li>Fix this by changing your tuple to have an <code>if-else</code> expression to provide the max and average values only when <code>Array.length</code> &gt; 0.</li>
+  </ol>
+
+<p><a href="#" onclick="toggleCode(this,'pattern2');return false;" class="uiitem">Show Code</a>
+<div class="indent-large" id="pattern2" style="display:none;">
+<pre class="prettyprint">
+let pattern_match_evaluate2 (myArray: float[]) = 
+    let len = Array.length myArray
+    match (len, (if len > 0 then Array.max myArray else 0.), (if len > 0 then Array.average myArray else 0.)) with 
+        | (0, _, _) -> printfn "Oh no, empty!"
+        | (length, _, _) when length > 10 -> printfn "Array too long!" 
+        | (_, max, average) when max > 4. &amp;&amp; average &lt;= 5. -> printfn "Values too small!"
+        | (_, max, average) when max > 4. -> printfn "Success!"
+        | _ -> printfn "ok"
+</pre>
+</div></p>
+
+  <h2>Create a function that matches on a list and returns a tuple</h2>
+  <p>
+    Now that we've gotten a little practice with pattern matching on arrays, let's try pattern matching on a list. Our goal is to pass in a list with 1-3 elements and return a tuple which indicates how many elements are in the list as well as which position (if any) the value <b>2</b> is in. So, if we pass in [0,2,3] we should get back (2,3) indicating the <b>2</b> is in the second position and the list has a length of 3.
+  </p>
+  
+  <ol>
+    <li>
+      Let's start by creating a function that matches on a list (up to length 3), and returns a tuple.
+    </li>
+    <li>
+      Next, start a match to return a tuple, which contains:
+      <ol class="indent-none">
+        <li>The position (if any) of the number <b>2</b> in the list and</li>
+        <li>The length of the list.</li>
+      </ol>
+    </li>
+    <li>Remember you can use the list syntax <code class="codeblock">| [2] | [2;_] | [2;_;_] -></code> as a match, and you will want to use the OR pattern to look for the value 2 in each spot as shown.</li>
+    <li>
+      Select your code and click <strong>CTRL + Enter</strong> to test it in the REPL, try different lists to verify that it is working as expected.
+    </li>
+  </ol>
+
+<p><a href="#" onclick="toggleCode(this,'matchtuple');return false;" class="uiitem">Show Code</a><div class="indent-large" id="matchtuple" style="display:none;">
+<pre class="prettyprint">
+let listToTuple (list: list&lt;int>) =
+    match list with 
+        | [2] | [2;_] | [2;_;_] -> (1, list.Length)
+        | [_;2] | [_;2;_] -> (2, list.Length)
+        | [_;_;2] -> (3, list.Length)
+        | _ -> (0, list.Length)
+        
+listToTuple [2]
+listToTuple [0;2]
+listToTuple [1;2;3]
+listToTuple [2;0;2]
+listToTuple [4;5;6]
+listToTuple [2;2;2;2]
+</pre></div></p>
+
+  <ol start="3">
+    <li>
+    <b>Bonus:</b> There is more than one way to solve this, can you come up with another solution?
+      <ul class="indent-none">
+        <li>
+          Should you calculate the list length as part of the match statement, or separately?
+        </li>
+      </ul>
+    </li>
+  </ol>
+
+<p><a href="#" onclick="toggleCode(this,'matchtuple2');return false;" class="uiitem">Show Code</a><div class="indent-large" id="matchtuple2" style="display:none;">
+<pre class="prettyprint">
+let listToTuple2 (list: list&lt;int>) = 
+    let position = function
+        | [2] | [2;_] | [2;_;_] -> 1
+        | [_;2] | [_;2;_] -> 2
+        | [_;_;2] -> 3
+        | _ -> 0
+    (position, list.Length)
+  </pre></div></p>
+
+  <h1>Summary</h1>
+  <p>
+    In this lab, we have rewritten an <code>if-then-else</code> statement to use pattern matching and utilized several types of pattern matching on lists and arrays.
+  </p>
+  <div class="align-right"> <a href="../Start%20Here.html">Go Back</a> </div>
+</section>
+
+    <script src="./res/js/jquery.min.js"></script>
+    <script src="./res/js/prettify.js"></script>
+    <script src="./res/js/script.js"></script>
+
+    <footer>Copyright (C) 2018 Xamarin Inc., Microsoft.</footer>
+</body>
+</html>
