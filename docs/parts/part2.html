@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+    <title>Exercise 2: Apply partial application</title>
+    <link rel="stylesheet" type="text/css" href="./res/styles/normalize.css">
+    <link rel="stylesheet" type="text/css" href="./res/styles/prettify.css" />
+    <link rel="stylesheet" type="text/css" href="./res/styles/styles.css">
+</head>
+
+<body>
+    <!-- Use the same title as the StartHere -->
+    <header>Partial Application and Pattern Matching</header>
+
+    <section id="main">
+
+      <h1 id="page-title"></h1>
+      <h2>Duration</h2>
+      <p>20 minutes</p>
+
+      <h2>Lab Goals</h2>
+        <p>
+          The primary goal of this lab will be to build this generic distance function to calculate the distance between two points and then to create two specific cases and calculate those distances by applying partial application.
+          <ol class="indent-medium">
+            <li>We	will first build a generic math function which calculates the distance between two points.</li>
+            <li>Then, we will use that function to calculate the Euclidean distance and Manhattan distance between two points using partial application.</li>
+          </ol>
+          The output from the REPL should look something like:
+          <img class="indent-none" src="res/images/partialapplication.png" alt="---- Missing Image -----"/>
+        </p>
+      
+
+      <h1>Steps</h1>
+
+      <h2>Build the generic distance function</h2>
+        <p>
+          Let's start by creating the generic function, which will calculate the distance between two points.
+        </p>
+        <ol>
+            <li>Begin by creating a library project in your IDE and open <b>script.fsx</b>.</li>
+
+            <li>Let's start by building the following function: <code>(SUM ( | x-y | )^p )^(1/p)</code><br />
+            <img src="res/images/math.png" alt="---- Missing Image -----"/></p>
+            </li>
+            <li>First, we will be taking in a <code>float</code> value <strong>p</strong>, and two points - <b>x</b> and <b>y</b>.</li>
+            <li>Since we want this to work on a group of coordinates, we'll have the <b>x</b> and <b>y</b> values come in as a list.</li>
+            <li>We will need to create a function to subtract the corresponding elements in each list to form a new list of the differences. We can use <a href="http://msdn.microsoft.com/en-us/library/ee340232.aspx"><code>List.map2</code></a> function to run a function that takes two values and returns a single value.
+            </li>  
+        </ol>
+
+<p><a href="#" onclick="toggleCode(this,'function1');return false;" class="uiitem">Show Code</a><div class="indent-large" id="function1" style="display:none;">
+<pre class="prettyprint">
+let list_difference = List.map2 (fun x y -> x - y) 
+</pre>
+</div></p>
+
+       <ol start="5"> 
+        <li>Continuing with the original function: <code>|x-y|</code> is the absolute value of x-y, we need to take the absolute value of each of the differences, F# has an <a href="http://msdn.microsoft.com/en-us/library/ee353713.aspx" target="_blank">abs function</a> that does that.
+        </li>
+        <li>Next, we need to take the resulting list to the power of p - remember in F#, you use the <code>**</code> operator to apply a power.
+        </li>
+        <li>Next, sum the resulting list using the proper <code>List</code> function.</li>
+        <li>Finally, take that sum and raise it to the power of <code>1/p</code>. All of this should be performed in a function named <code>minkowski</code>.</li>
+      </ol>
+
+<p><a href="#" onclick="toggleCode(this,'function2');return false;" class="uiitem">Show Code</a><div class="indent-large" id="function2" style="display:none;">
+<pre class="prettyprint">
+let minkowski p listX listY =
+    let distance = 
+      list_difference listX listY 
+        |> List.map abs 
+        |> List.map (fun x -> x ** p) 
+        |> List.sum 
+    distance ** (1.0/p)
+</pre>
+</div></p>
+      
+    <h2>Create a function for two cases by applying partial application</h2>
+    <p>Now that we the generic function created, we're going to consider two cases for the power (p):</p>
+    <ul>
+      <li>When <code>p=2</code>, we get the &quot;<a href="http://www.improvedoutcomes.com/docs/WebSiteDocs/Clustering/Clustering_Parameters/Manhattan_Distance_Metric.htm" target="_blank">Euclidean distance</a>&quot; or, shortest, between two points formula.</li>
+      <li>When <code>p=1</code>, we get the &quot;<a href="http://www.improvedoutcomes.com/docs/WebSiteDocs/Clustering/Clustering_Parameters/Manhattan_Distance_Metric.htm" target="_blank">Manhattan distance</a>&quot;, where the shortest point from one address to another is not a straight line, but a number of blocks north and south and number of blocks east and west.</li>
+      <li>Create a function for each of these cases by partially applying the p value</li>
+    </ul>        
+  
+  <ol>
+    <li>First, let's create the Manhattan distance function, remember that is: <code>SUM ( | x-y | )</code>, we can utilize our existing <code>minkowski</code> function for this, since it has no power, pass in <code>1.0</code>. We want to create an open function here, so not all parameters will be supplied.</li>
+  </ol>
+
+<p><a href="#" onclick="toggleCode(this,'manhattan');return false;" class="uiitem">Show Code</a><div class="indent-large" id="manhattan" style="display:none;">
+<pre class="prettyprint">
+let manhattan = minkowski 1.0
+</pre>
+</div></p>
+
+  <ol start="2">
+    <li> Next, let's find the Euclidean distance: <code>SQRT (SUM ( | x-y |^2) )</code></li>
+  </ol>
+ 
+ <p><a href="#" onclick="toggleCode(this,'euclidean');return false;" class="uiitem">Show Code</a><div class="indent-large" id="euclidean" style="display:none;">
+<pre class="prettyprint">
+let euclidean = minkowski 2.0
+</pre>
+</div></p>
+
+  <ol start="3">
+    <li>Finally, lets try it all out, create two lists with points, one with (0,0) and the other with (3,4).
+    </li>
+    <li>Then call your Manhattan function with the two arrays.</li>
+    <li>And call the Euclidean function with the two arrays, pass the result into the <code>Sqrt</code> function to complete the calculation.</li>
+  </ol>
+
+<p><a href="#" onclick="toggleCode(this,'last');return false;" class="uiitem">Show Code</a><div class="indent-large" id="last" style="display:none;">
+<pre class="prettyprint">
+let point_1 = [0.0; 0.0]
+let point_2 = [3.0; 4.0]
+manhattan point_1 point_2
+euclidean point_1 point_2 |> sqrt
+</pre>
+</div></p>
+        
+            
+  <ol start="4">
+    <li>Select your code and click <strong>CTRL+ENTER</strong> to test it in the REPL</li>
+  </ol>
+            
+  <h1>Summary</h1>
+    <p>In this lab, we have applied partial application to a generic function to calculate distance.<br />
+    </p>
+    <div class="align-right">
+      <a href="../Start%20Here.html">Go Back</a>
+    </div>
+
+  </section>
+
+    <script src="./res/js/jquery.min.js"></script>
+    <script src="./res/js/prettify.js"></script>
+    <script src="./res/js/script.js"></script>
+
+    <footer>Copyright (C) 2018 Xamarin Inc., Microsoft.</footer>
+</body>
+</html>
